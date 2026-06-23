@@ -1,0 +1,460 @@
+@import "tailwindcss";
+
+@theme {
+  --shadow-neon-green: 0 0 15px rgba(16, 185, 129, 0.6), 0 0 30px rgba(16, 185, 129, 0.3);
+  --shadow-neon-blue: 0 0 15px rgba(6, 182, 212, 0.6), 0 0 30px rgba(6, 182, 212, 0.3);
+  --shadow-neon-pink: 0 0 15px rgba(236, 72, 153, 0.6), 0 0 30px rgba(236, 72, 153, 0.3);
+  --shadow-neon-red: 0 0 15px rgba(239, 68, 68, 0.6), 0 0 30px rgba(239, 68, 68, 0.3);
+  --shadow-neon-gold: 0 0 15px rgba(245, 158, 11, 0.6), 0 0 30px rgba(245, 158, 11, 0.3);
+  --shadow-neon-purple: 0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(168, 85, 247, 0.3);
+}
+
+/* ==============================================================
+   PREMIUM VANILLA CSS TOKENS & CLASSES
+   ============================================================== */
+body {
+  background-color: #030108;
+  color: #f3f4f6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-attachment: fixed;
+  transition: background-image 0.5s ease;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 15, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c89b3c, #6f5a23);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #e0c068, #8a6e2c);
+}
+
+/* PREMIUM GLASS PANELS - Glassmorphism is enhanced with higher opacity and bright borders */
+.glass-panel {
+  background: rgba(14, 9, 28, 0.7) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 
+    0 30px 65px -15px rgba(0, 0, 0, 0.95), 
+    inset 0 1px 2px rgba(255, 255, 255, 0.08) !important;
+  border-radius: 24px;
+}
+
+.glass-header {
+  background: rgba(10, 6, 20, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* POKER TABLE SURFACE (Fixed geometry) */
+.premium-table-container {
+  border-radius: 9999px !important; /* Perfect Oval */
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* NEON BUTTONS */
+.btn-neon {
+  background: linear-gradient(90deg, rgba(168,85,247,0.15), rgba(236,72,153,0.15));
+  border: 1px solid rgba(236,72,153,0.4);
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+  box-shadow: 0 0 12px rgba(236,72,153,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.btn-neon:hover {
+  background: linear-gradient(90deg, rgba(168,85,247,0.35), rgba(236,72,153,0.35));
+  box-shadow: 0 0 22px rgba(236,72,153,0.5);
+  transform: translateY(-2px);
+}
+
+/* DASHBOARD ITEM */
+.dashboard-item {
+  background: rgba(14, 9, 28, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.dashboard-item:hover {
+  background: rgba(22, 14, 42, 0.8) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ==============================================================
+   THEME SPECIFIC STYLES
+   ============================================================== */
+
+/* CLASSIC CASINO THEME - Royal green forest hall */
+.theme-classic {
+  background-image: 
+    radial-gradient(circle at 50% 15%, rgba(16, 185, 129, 0.18), transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(245, 158, 11, 0.08), transparent 45%),
+    linear-gradient(180deg, #020704 0%, #081a13 100%) !important;
+}
+.theme-classic .premium-table-container {
+  background: radial-gradient(ellipse at 50% 36%, #0f6b46 0%, #073d28 55%, #04210f 100%);
+  border: 16px solid #2a1409; /* Polished dark-walnut wood rail */
+  box-shadow:
+    /* Deep recess inner shadow on felt */
+    inset 0 0 95px rgba(0, 0, 0, 0.95),
+    /* Gold highlight rim inside the rail */
+    inset 0 0 0 2px rgba(212, 175, 55, 0.8),
+    /* Thin dark separation line */
+    0 0 0 1px rgba(0, 0, 0, 0.85),
+    /* Brushed-gold trim */
+    0 0 0 4px #c89b3c,
+    /* Outer shadow line beyond the gold */
+    0 0 0 6px #160b04,
+    /* Deep outer table shadow */
+    0 35px 70px rgba(0, 0, 0, 0.9),
+    /* Emerald felt under-glow */
+    0 0 60px rgba(16, 185, 129, 0.22);
+}
+/* Luminous felt sheen toward the top-center */
+.theme-classic .premium-table-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at 50% 34%, rgba(52, 175, 120, 0.38), transparent 56%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+/* Gold betting-line arc */
+.theme-classic .premium-table-container::after {
+  content: '';
+  position: absolute;
+  inset: 42px;
+  border-radius: 9999px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+/* Classic Cards styling (Gold trim for classic paper cards) */
+.theme-classic .bg-white.border-gray-300 {
+  border: 1.5px solid #c89b3c !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6) !important;
+  background: linear-gradient(135deg, #fffdf7 0%, #f6efdd 100%) !important;
+}
+/* Engraved serif display for headings in the luxe theme */
+.theme-classic .font-serif {
+  font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.06em;
+}
+/* Gold-tinted hover for dashboard tiles in the luxe theme */
+.theme-classic .dashboard-item:hover {
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 0 18px rgba(212, 175, 55, 0.12) !important;
+}
+/* Emerald-dark glass with gold-tinted edges (replaces the purple glass) */
+.theme-classic .glass-panel {
+  background: rgba(6, 33, 23, 0.62) !important;
+  border-color: rgba(212, 175, 55, 0.18) !important;
+}
+.theme-classic .glass-header {
+  background: rgba(5, 26, 18, 0.74) !important;
+  border-bottom-color: rgba(212, 175, 55, 0.18) !important;
+}
+.theme-classic .dashboard-item {
+  border-color: rgba(212, 175, 55, 0.12) !important;
+}
+/* Emerald & gold CSS card back (no raster asset needed) */
+.card-back-classic {
+  border: 1.5px solid #c89b3c;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.22), transparent 58%),
+    repeating-linear-gradient(45deg, #0c4030 0 6px, #093326 6px 12px);
+}
+.card-back-classic::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 4px;
+  background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.28), transparent 62%);
+  pointer-events: none;
+}
+
+/* CYBER NEON THEME - High-tech futuristic grid */
+.theme-cyber {
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.22), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.2), transparent 50%),
+    linear-gradient(180deg, #020106 0%, #0b071d 100%) !important;
+}
+.theme-cyber .premium-table-container {
+  background: radial-gradient(ellipse at center, #0e0f22 0%, #04030a 100%);
+  border: 16px solid #111827; /* Dark metallic rail */
+  box-shadow: 
+    inset 0 0 80px rgba(0, 0, 0, 0.95),
+    inset 0 0 0 2px rgba(6, 182, 212, 0.6), /* Glowing cyan trim */
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 0 0 3px #06b6d4, /* Cyan outer metal rim */
+    0 25px 60px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(6, 182, 212, 0.35);
+}
+/* Cyberpunk felt grid */
+.theme-cyber .premium-table-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* VICE CITY THEME - Sunset beach overlay */
+.theme-vice {
+  background-image: 
+    linear-gradient(180deg, rgba(7, 1, 15, 0.55) 0%, rgba(28, 5, 46, 0.75) 100%),
+    url('/vice_city_poker_bg.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
+}
+.theme-vice .premium-table-container {
+  background: radial-gradient(ellipse at center, #2e073c 0%, #0c0114 100%);
+  border: 16px solid #20072b; /* Dark purple rail */
+  box-shadow: 
+    inset 0 0 80px rgba(0, 0, 0, 0.92),
+    inset 0 0 0 2px rgba(236, 72, 153, 0.65), /* Neon pink trim */
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 0 0 3px #ec4899, /* Pink metal rim */
+    0 25px 60px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(236, 72, 153, 0.35);
+}
+.theme-vice .premium-table-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(236, 72, 153, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 72, 153, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* CARD BACK STYLINGS */
+.card-back-cyber {
+  filter: hue-rotate(180deg) saturate(1.8) brightness(1.1);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+}
+.card-back-vice {
+  filter: hue-rotate(300deg) saturate(1.6) brightness(1.1);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.4);
+}
+
+/* ==============================================================
+   KEYFRAMES & ANIMATIONS
+   ============================================================== */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 5px rgba(236, 72, 153, 0.2), 0 0 10px rgba(236, 72, 153, 0.1); }
+  100% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.5), 0 0 35px rgba(236, 72, 153, 0.25); }
+}
+@keyframes chipFloat {
+  0%, 100% { transform: scale(1) translateY(0); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
+  50% { transform: scale(1.05) translateY(-4px); filter: drop-shadow(0 12px 16px rgba(0,0,0,0.6)); }
+}
+@keyframes pulseGlowFuchsia {
+  0% { box-shadow: 0 0 15px rgba(236, 72, 153, 0.4), inset 0 0 10px rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.5); }
+  100% { box-shadow: 0 0 35px rgba(236, 72, 153, 0.8), inset 0 0 20px rgba(236, 72, 153, 0.4); border-color: rgba(236, 72, 153, 0.9); }
+}
+@keyframes pulseGlowCyan {
+  0% { box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.5); }
+  100% { box-shadow: 0 0 35px rgba(6, 182, 212, 0.8), inset 0 0 20px rgba(6, 182, 212, 0.4); border-color: rgba(6, 182, 212, 0.9); }
+}
+
+/* DEAL CARD ANIMATIONS (Directed outwards from center) */
+@keyframes deal-seat-0 { 
+  0% { transform: translate(300px, 200px) scale(0.1) rotate(180deg); opacity: 0; } 
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+}
+@keyframes deal-seat-1 { 
+  0% { transform: translate(400px, 0px) scale(0.1) rotate(180deg); opacity: 0; } 
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+}
+@keyframes deal-seat-2 { 
+  0% { transform: translate(0px, -200px) scale(0.1) rotate(180deg); opacity: 0; } 
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+}
+@keyframes deal-seat-3 { 
+  0% { transform: translate(-400px, 0px) scale(0.1) rotate(180deg); opacity: 0; } 
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+}
+@keyframes deal-seat-4 { 
+  0% { transform: translate(-300px, 200px) scale(0.1) rotate(180deg); opacity: 0; } 
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+}
+
+.deal-card-0 { animation: deal-seat-0 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.deal-card-1 { animation: deal-seat-1 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.deal-card-2 { animation: deal-seat-2 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.deal-card-3 { animation: deal-seat-3 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.deal-card-4 { animation: deal-seat-4 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+@keyframes deal-board {
+  0% { transform: scale(0.3) translateY(-40px); opacity: 0; filter: blur(4px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+.deal-card-board { animation: deal-board 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.stack-bar {
+  height: 4px; border-radius: 2px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.7), rgba(245, 158, 11, 0.3));
+  background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.stack-bar-danger {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.7), rgba(239, 68, 68, 0.3));
+  background-size: 200% 100%; animation: shimmer 2s ease-in-out infinite;
+}
+.stack-bar-healthy {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.7), rgba(16, 185, 129, 0.3));
+  background-size: 200% 100%; animation: shimmer 4s ease-in-out infinite;
+}
+
+.badge-d { background: radial-gradient(circle, #fcd34d 0%, #f59e0b 100%); border: 1.5px solid #fff; color: #000; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+.badge-sb { background: radial-gradient(circle, #fca5a5 0%, #ef4444 100%); border: 1.5px solid #fff; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+.badge-bb { background: radial-gradient(circle, #93c5fd 0%, #3b82f6 100%); border: 1.5px solid #fff; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+
+@keyframes betChipIn { 0% { transform: scale(0.3) translateY(40px); opacity: 0; filter: blur(2px); } 100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); } }
+.bet-chip-entry { animation: betChipIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+@keyframes winnerCardGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 8px rgba(245, 158, 11, 0.3); border-color: rgba(245, 158, 11, 0.6); }
+  50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.95), inset 0 0 15px rgba(245, 158, 11, 0.5); border-color: rgba(245, 158, 11, 1); }
+}
+.winner-card-glow { animation: winnerCardGlow 1.5s ease-in-out infinite; }
+
+/* ==============================================================
+   FLYING CHIPS ANIMATION PATHS
+   ============================================================== */
+
+/* Seat 0 collect (top-left -> center) */
+@keyframes collect-0 {
+  0% { top: 15%; left: 20%; opacity: 1; transform: scale(1.2); }
+  100% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+}
+/* Seat 0 win (center -> top-left) */
+@keyframes win-0 {
+  0% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+  100% { top: 15%; left: 20%; opacity: 1; transform: scale(1.2); }
+}
+
+/* Seat 1 collect (left-middle -> center) */
+@keyframes collect-1 {
+  0% { top: 50%; left: 5%; opacity: 1; transform: scale(1.2); }
+  100% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+}
+/* Seat 1 win (center -> left-middle) */
+@keyframes win-1 {
+  0% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+  100% { top: 50%; left: 5%; opacity: 1; transform: scale(1.2); }
+}
+
+/* Seat 2 collect (bottom-center -> center) */
+@keyframes collect-2 {
+  0% { top: 80%; left: 50%; opacity: 1; transform: scale(1.2); }
+  100% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+}
+/* Seat 2 win (center -> bottom-center) */
+@keyframes win-2 {
+  0% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+  100% { top: 80%; left: 50%; opacity: 1; transform: scale(1.2); }
+}
+
+/* Seat 3 collect (right-middle -> center) */
+@keyframes collect-3 {
+  0% { top: 50%; left: 95%; opacity: 1; transform: scale(1.2); }
+  100% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+}
+/* Seat 3 win (center -> right-middle) */
+@keyframes win-3 {
+  0% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+  100% { top: 50%; left: 95%; opacity: 1; transform: scale(1.2); }
+}
+
+/* Seat 4 collect (top-right -> center) */
+@keyframes collect-4 {
+  0% { top: 15%; left: 80%; opacity: 1; transform: scale(1.2); }
+  100% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+}
+/* Seat 4 win (center -> top-right) */
+@keyframes win-4 {
+  0% { top: 45%; left: 50%; opacity: 0; transform: scale(0.6); }
+  100% { top: 15%; left: 80%; opacity: 1; transform: scale(1.2); }
+}
+
+.chip-collect-anim-0 { animation: collect-0 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-win-anim-0 { animation: win-0 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-collect-anim-1 { animation: collect-1 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-win-anim-1 { animation: win-1 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-collect-anim-2 { animation: collect-2 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-win-anim-2 { animation: win-2 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-collect-anim-3 { animation: collect-3 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-win-anim-3 { animation: win-3 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-collect-anim-4 { animation: collect-4 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.chip-win-anim-4 { animation: win-4 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+@keyframes confettiFall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+
+.confetti-particle {
+  position: absolute;
+  top: 0;
+  animation: confettiFall var(--fall-duration) linear forwards;
+  background-color: var(--particle-color);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0; /* starts hidden before animation runs */
+  animation-fill-mode: forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0; /* starts hidden before animation runs */
+  animation-fill-mode: forwards;
+}
