@@ -453,26 +453,7 @@ func buildPrompt(state *GameState, playerIdx int, minCall int, dealerIdx int, an
 		anteInfo = fmt.Sprintf("\nANTE: %d chips (contributed by each player)", ante)
 	}
 
-	return fmt.Sprintf(`TEXAS HOLD'EM TOURNAMENT — YOUR TURN
-
-STAGE: %s
-POT: %d chips
-YOUR STACK: %d chips
-YOUR HAND: %s (%s)
-BOARD: %s
-BLINDS: %s
-POSITION: %s%s
-
-MATH:
-- Your bet already in pot this street: %d
-- Amount needed to call: %d chips
-- Pot odds: %s
-%s
-YOUR RECENT HISTORY:
-%s
-
-OPPONENTS:
-%s
+	return fmt.Sprintf(`TEXAS HOLD'EM TOURNAMENT SYSTEM INSTRUCTIONS
 
 RULES:
 1. If call amount = 0 → you MUST NOT FOLD. You can CHECK for free or BET/RAISE.
@@ -489,15 +470,41 @@ RULES:
 
 RESPOND EXACTLY:
 [THOUGHTS] 2-4 sentence analysis in Ukrainian (українською мовою) [/THOUGHTS]
-[ACTION] FOLD, CHECK, CALL, or RAISE <number> [/ACTION]`,
-		state.Stage, state.TotalPot, p.Stack,
-		formatCards(p.Cards), handStrengthDesc, formatCards(state.Board),
-		state.CurrentBlinds,
-		position, anteInfo,
-		p.CurrentBet, minCall, potOddsStr,
-		drawsInfo,
-		memory,
+[ACTION] FOLD, CHECK, CALL, or RAISE <number> [/ACTION]
+
+==================================================
+GAME STATE & INFORMATION:
+
+OPPONENTS:
+%s
+
+YOUR RECENT HISTORY:
+%s
+
+CURRENT STAGE: %s
+BLINDS: %s%s
+
+YOUR STATUS:
+- Position: %s
+- Your stack: %d chips
+- Your hand: %s (%s)
+- Board: %s
+
+MATH FOR THIS TURN:
+- Your bet already in pot this street: %d
+- Amount needed to call: %d chips
+- Pot odds: %s
+- Total pot: %d chips
+%s`,
 		strings.Join(opLines, "\n"),
+		memory,
+		state.Stage,
+		state.CurrentBlinds, anteInfo,
+		position,
+		p.Stack,
+		formatCards(p.Cards), handStrengthDesc, formatCards(state.Board),
+		p.CurrentBet, minCall, potOddsStr, state.TotalPot,
+		drawsInfo,
 	)
 }
 
