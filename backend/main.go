@@ -687,7 +687,9 @@ func max(a, b int) int {
 
 // processAction validates the AI's chosen action and applies it to the game state.
 // Returns the action log string for DB storage.
-func processAction(state *GameState, idx int, thoughts, actionText string, minCall int, bbAmount int) string {
+// minRaise is the minimum legal raise increment for this round (the size of the
+// last bet/raise, never below one big blind).
+func processAction(state *GameState, idx int, thoughts, actionText string, minCall int, minRaise int) string {
 	p := &state.Players[idx]
 	actionText = strings.ToUpper(strings.TrimSpace(actionText))
 
@@ -749,11 +751,11 @@ func processAction(state *GameState, idx int, thoughts, actionText string, minCa
 			}
 		}
 
-		// Min raise to: Current highest bet + minCall (a rough approximation of last raise)
-		minRaiseTo := (p.CurrentBet + minCall) + minCall
-		if minCall == 0 {
-			minRaiseTo = p.CurrentBet + bbAmount // If no bet yet, the opening bet must be at least one big blind
-		}
+		// Minimum legal raise-to = current highest bet + the last raise increment.
+		// highestBet = p.CurrentBet + minCall, so this is independent of how much
+		// this particular player already has in the pot (previously minCall was
+		// reused as the increment, which gave a different floor per position).
+		minRaiseTo := (p.CurrentBet + minCall) + minRaise
 
 		if raiseTo < minRaiseTo {
 			raiseTo = minRaiseTo
@@ -801,7 +803,7 @@ func processAction(state *GameState, idx int, thoughts, actionText string, minCa
 
 const maxTurnTime = 20 // seconds — matches frontend's dashOffset calculation (timeLeft / 20)
 
-func simulatePlayerTurn(ws *websocket.Conn, state *GameState, idx int, highestBet int, dealerIdx int, ante int, bbAmount int, paused *atomic.Bool) {
+func simulatePlayerTurn(ws *websocket.Conn, state *GameState, idx int, highestBet int, dealerIdx int, ante int, minRaise int, paused *atomic.Bool) {
 	p := &state.Players[idx]
 
 	// Safety: should not be called for inactive/busted/stack=0 players
@@ -869,7 +871,7 @@ func simulatePlayerTurn(ws *websocket.Conn, state *GameState, idx int, highestBe
 	}
 
 	// Validate and apply the action
-	actionLog := processAction(state, idx, result.thoughts, result.action, minCall, bbAmount)
+	actionLog := processAction(state, idx, result.thoughts, result.action, minCall, minRaise)
 
 	// Extract amount: for FOLD, use TotalInvested; for other actions, use CurrentBet
 	actionAmt := p.CurrentBet
@@ -915,6 +917,11 @@ func runBettingRound(ws *websocket.Conn, state *GameState, startIdx int, dealerI
 		}
 	}
 
+	// Minimum legal raise increment for the round. It starts at one big blind
+	// and grows to match the largest raise made so far, so the min-raise floor
+	// is the same for every player regardless of what they already have in.
+	lastRaiseSize := bbAmount
+
 	// Track which players still need to act this round
 	needsToAct := make([]bool, n)
 	for i, p := range state.Players {
@@ -942,11 +949,14 @@ func runBettingRound(ws *websocket.Conn, state *GameState, startIdx int, dealerI
 		p := &state.Players[idx]
 
 		if !p.IsBusted && p.IsActive && p.Stack > 0 && needsToAct[idx] {
-			simulatePlayerTurn(ws, state, idx, highestBet, dealerIdx, ante, bbAmount, paused)
+			simulatePlayerTurn(ws, state, idx, highestBet, dealerIdx, ante, lastRaiseSize, paused)
 			needsToAct[idx] = false
 
 			// Did this player raise? If so, everyone else must respond
 			if p.CurrentBet > highestBet {
+				if inc := p.CurrentBet - highestBet; inc > lastRaiseSize {
+					lastRaiseSize = inc
+				}
 				highestBet = p.CurrentBet
 				for i := 0; i < n; i++ {
 					if i != idx && !state.Players[i].IsBusted && state.Players[i].IsActive && state.Players[i].Stack > 0 {
@@ -1030,6 +1040,35 @@ func clearStreetBets(state *GameState) {
 	for i := range state.Players {
 		state.Players[i].CurrentBet = 0
 	}
+}
+
+// returnUncalledBet refunds the uncalled portion of the largest wager before
+// pots are built. In No-Limit Hold'em a player can never win more from an
+// opponent than that opponent put in, so any chips the single biggest
+// contributor staked beyond the second-biggest contribution were never matched
+// and must go back to them. Without this the overbet used to be resolved as a
+// phantom one-player "side pot", which inflated chips-won stats and overwrote
+// the recorded hand winner. Returns the refunded player index and amount
+// (idx = -1 when nothing is uncalled, e.g. two players all-in for the same total).
+func returnUncalledBet(players []Player) (int, int) {
+	maxIdx, maxInvest, secondInvest := -1, 0, 0
+	for i := range players {
+		inv := players[i].TotalInvested
+		if inv > maxInvest {
+			secondInvest = maxInvest
+			maxInvest = inv
+			maxIdx = i
+		} else if inv > secondInvest {
+			secondInvest = inv
+		}
+	}
+	uncalled := maxInvest - secondInvest
+	if maxIdx == -1 || uncalled <= 0 {
+		return -1, 0
+	}
+	players[maxIdx].Stack += uncalled
+	players[maxIdx].TotalInvested -= uncalled
+	return maxIdx, uncalled
 }
 
 // postBlind deducts the blind amount from a player's stack (caps at stack for all-in).
@@ -1261,6 +1300,12 @@ func runGame(ws *websocket.Conn, paused *atomic.Bool) {
 		state.Stage = "Showdown"
 		state.ActivePlayerIndex = -1
 
+		// 0. Return any uncalled overbet to its owner before building pots.
+		if rIdx, rAmt := returnUncalledBet(state.Players); rIdx >= 0 {
+			state.TotalPot -= rAmt
+			fmt.Printf("↩️  %s отримує назад незаколені %d фішок\n", state.Players[rIdx].Name, rAmt)
+		}
+
 		// 1. Build pots
 		type Pot struct {
 			Amount   int
@@ -1340,7 +1385,11 @@ func runGame(ws *websocket.Conn, paused *atomic.Bool) {
 					results = append(results, msg)
 					fmt.Println("🎉", msg)
 				}
-				ultimateWinnerIdx = wIdx
+				// Only the first (main) pot decides the recorded hand winner —
+				// don't let a later single-eligible side pot overwrite it.
+				if ultimateWinnerIdx == -1 {
+					ultimateWinnerIdx = wIdx
+				}
 				winnerCombo = "автоматично"
 			} else {
 				var bestRating evaluator.HandRating
@@ -1561,7 +1610,6 @@ func loadEnv() {
 		break
 	}
 }
-
 func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	if db == nil {
 		http.Error(w, "Database not initialized", http.StatusInternalServerError)
@@ -1602,11 +1650,107 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleHistory(w http.ResponseWriter, r *http.Request) {
+	if db == nil {
+		http.Error(w, "Database not initialized", http.StatusInternalServerError)
+		return
+	}
+
+	query := `
+		SELECT 
+			a.player_name, 
+			a.model_id, 
+			a.stage, 
+			a.hole_cards, 
+			COALESCE(h.board, '') as board, 
+			a.action, 
+			a.amount, 
+			a.thoughts,
+			h.hand_number
+		FROM actions a
+		LEFT JOIN hands h ON a.hand_id = h.id
+		ORDER BY a.id DESC 
+		LIMIT 50
+	`
+	rows, err := db.Query(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintln(w, `<!DOCTYPE html>
+<html>
+<head>
+	<title>AI Poker Arena - History & Thoughts</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: #e0e0e0; margin: 20px; }
+		h1 { color: #4CAF50; border-bottom: 2px solid #333; padding-bottom: 10px; }
+		table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+		th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #2d2d2d; }
+		th { background-color: #1e1e1e; color: #4CAF50; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+		tr:hover { background-color: #1a1a1a; }
+		.thoughts { font-style: italic; color: #a5d6a7; max-width: 400px; word-wrap: break-word; }
+		.cards { font-family: monospace; font-size: 16px; font-weight: bold; background-color: #222; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+		.badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+		.stage { background-color: #1976D2; color: white; }
+		.action { background-color: #4CAF50; color: white; }
+		.action-fold { background-color: #e53935; color: white; }
+		.action-check { background-color: #757575; color: white; }
+	</style>
+</head>
+<body>
+	<h1>🃏 Логи думок та рішень AI (Останні 50 дій)</h1>
+	<table>
+		<tr>
+			<th>Hand #</th>
+			<th>Гравець (Модель)</th>
+			<th>Карти</th>
+			<th>Етап</th>
+			<th>Стіл (Board)</th>
+			<th>Дія</th>
+			<th>Сума</th>
+			<th>Думки моделі (Thoughts)</th>
+		</tr>`)
+
+	for rows.Next() {
+		var name, model, stage, hole, board, action, thoughts string
+		var amount, handNum int
+		if err := rows.Scan(&name, &model, &stage, &hole, &board, &action, &amount, &thoughts, &handNum); err == nil {
+			actionClass := "action"
+			if action == "FOLD" {
+				actionClass = "action-fold"
+			} else if action == "CHECK" {
+				actionClass = "action-check"
+			}
+
+			fmt.Fprintf(w, `
+		<tr>
+			<td><strong>%d</strong></td>
+			<td><strong>%s</strong><br><small style="color:#888;">%s</small></td>
+			<td><span class="cards">%s</span></td>
+			<td><span class="badge stage">%s</span></td>
+			<td><span class="cards">%s</span></td>
+			<td><span class="badge %s">%s</span></td>
+			<td>%d</td>
+			<td class="thoughts">%s</td>
+		</tr>`, handNum, name, model, hole, stage, board, actionClass, action, amount, thoughts)
+		}
+	}
+
+	fmt.Fprintln(w, `
+	</table>
+</body>
+</html>`)
+}
+
 func main() {
 	loadEnv()
 	initDB()
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/metrics", handleMetrics)
+	http.HandleFunc("/history", handleHistory)
 	fmt.Println("🚀 Покерний турнірний сервер запущено на порту :8080...")
 	_ = http.ListenAndServe(":8080", nil)
 }
