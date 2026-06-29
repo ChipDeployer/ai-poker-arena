@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const DEFAULT_SERVER_IP = typeof window !== 'undefined' ? window.location.hostname : "192.168.0.100";
+const getDefaultServerIp = () => {
+  if (typeof window === 'undefined') return "192.168.0.100";
+  const host = window.location.hostname;
+  if (host.startsWith('poker.')) {
+    return host.replace('poker.', 'poker-api.');
+  }
+  return host;
+};
+
+const DEFAULT_SERVER_IP = getDefaultServerIp();
 
 const buildWsUrl = (ip) => {
   const cleanIP = ip.trim();
@@ -33,7 +42,13 @@ const buildWsUrl = (ip) => {
 
 export function useWebSocket({ setGameState, addLog, playSound, isSimulating, prevPotRef, setPotAnimKey, animatePotCounter, lastThoughtRef, lastActionRef, lastBlindsRef }) {
   const [serverIP, setServerIP] = useState(() => {
-    return localStorage.getItem('poker_server_ip') || DEFAULT_SERVER_IP;
+    const saved = localStorage.getItem('poker_server_ip');
+    if (saved && saved.startsWith('poker.') && !saved.startsWith('poker-api.')) {
+      const apiHost = saved.replace('poker.', 'poker-api.');
+      localStorage.setItem('poker_server_ip', apiHost);
+      return apiHost;
+    }
+    return saved || DEFAULT_SERVER_IP;
   });
   const [connectionStatus, setConnectionStatus] = useState("DISCONNECTED");
   const [wsUrl, setWsUrl] = useState(() => buildWsUrl(serverIP));
