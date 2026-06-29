@@ -2,12 +2,41 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const DEFAULT_SERVER_IP = typeof window !== 'undefined' ? window.location.hostname : "192.168.0.100";
 
+const buildWsUrl = (ip) => {
+  const cleanIP = ip.trim();
+  if (!cleanIP) return '';
+  if (cleanIP.startsWith('ws://') || cleanIP.startsWith('wss://')) {
+    return cleanIP;
+  }
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const protocol = isHttps ? 'wss' : 'ws';
+  
+  // Check if it's a local IP address or localhost
+  const isIpOrLocalhost = 
+    cleanIP === 'localhost' || 
+    cleanIP === '127.0.0.1' || 
+    /^[0-9.]+$/.test(cleanIP) || 
+    cleanIP.startsWith('192.168.') || 
+    cleanIP.startsWith('10.') || 
+    cleanIP.startsWith('172.');
+    
+  if (isIpOrLocalhost) {
+    return `${protocol}://${cleanIP}:8080/ws`;
+  } else {
+    // For domains like poker.aethel.beauty, route /ws on standard port
+    if (cleanIP.includes(':')) {
+      return `${protocol}://${cleanIP}/ws`;
+    }
+    return `${protocol}://${cleanIP}/ws`;
+  }
+};
+
 export function useWebSocket({ setGameState, addLog, playSound, isSimulating, prevPotRef, setPotAnimKey, animatePotCounter, lastThoughtRef, lastActionRef, lastBlindsRef }) {
   const [serverIP, setServerIP] = useState(() => {
     return localStorage.getItem('poker_server_ip') || DEFAULT_SERVER_IP;
   });
   const [connectionStatus, setConnectionStatus] = useState("DISCONNECTED");
-  const [wsUrl, setWsUrl] = useState(`ws://${serverIP}:8080/ws`);
+  const [wsUrl, setWsUrl] = useState(() => buildWsUrl(serverIP));
 
   const [reconnectAttempt, setReconnectAttempt] = useState(0);
   const [isAutoReconnecting, setIsAutoReconnecting] = useState(false);
@@ -178,7 +207,7 @@ export function useWebSocket({ setGameState, addLog, playSound, isSimulating, pr
     }
 
     localStorage.setItem('poker_server_ip', cleanIP);
-    const newUrl = `ws://${cleanIP}:8080/ws`;
+    const newUrl = buildWsUrl(cleanIP);
     setWsUrl(newUrl);
     connectWebSocketRef.current(newUrl);
   }, [serverIP]);
