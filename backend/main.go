@@ -484,9 +484,11 @@ RULES:
 4. In late position, steal blinds with raises of 2.5-3x BB.
 5. As blinds increase, widen your range — stolen blinds are critical.
 6. Stack < call amount → CALL = ALL-IN.
+7. You MUST write your [THOUGHTS] analysis in Ukrainian (українською мовою).
+8. The [ACTION] tag and command MUST be in English (FOLD, CHECK, CALL, or RAISE <number>). Do not translate the action keywords.
 
 RESPOND EXACTLY:
-[THOUGHTS] 2-4 sentence analysis [/THOUGHTS]
+[THOUGHTS] 2-4 sentence analysis in Ukrainian (українською мовою) [/THOUGHTS]
 [ACTION] FOLD, CHECK, CALL, or RAISE <number> [/ACTION]`,
 		state.Stage, state.TotalPot, p.Stack,
 		formatCards(p.Cards), handStrengthDesc, formatCards(state.Board),
@@ -1553,10 +1555,51 @@ func loadEnv() {
 	}
 }
 
+func handleMetrics(w http.ResponseWriter, r *http.Request) {
+	if db == nil {
+		http.Error(w, "Database not initialized", http.StatusInternalServerError)
+		return
+	}
+
+	rows, err := db.Query("SELECT model_id, games_played, games_won, hands_played, hands_won, total_chips_won FROM model_stats")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	
+	fmt.Fprintln(w, "# HELP poker_model_games_played Total games played by model")
+	fmt.Fprintln(w, "# TYPE poker_model_games_played counter")
+	fmt.Fprintln(w, "# HELP poker_model_games_won Total games won by model")
+	fmt.Fprintln(w, "# TYPE poker_model_games_won counter")
+	fmt.Fprintln(w, "# HELP poker_model_hands_played Total hands played by model")
+	fmt.Fprintln(w, "# TYPE poker_model_hands_played counter")
+	fmt.Fprintln(w, "# HELP poker_model_hands_won Total hands won by model")
+	fmt.Fprintln(w, "# TYPE poker_model_hands_won counter")
+	fmt.Fprintln(w, "# HELP poker_model_chips_won Total chips won by model")
+	fmt.Fprintln(w, "# TYPE poker_model_chips_won counter")
+
+	for rows.Next() {
+		var modelID string
+		var gp, gw, hp, hw, tc int
+		if err := rows.Scan(&modelID, &gp, &gw, &hp, &hw, &tc); err == nil {
+			escapedModel := strings.ReplaceAll(modelID, "\"", "\\\"")
+			fmt.Fprintf(w, "poker_model_games_played{model=\"%s\"} %d\n", escapedModel, gp)
+			fmt.Fprintf(w, "poker_model_games_won{model=\"%s\"} %d\n", escapedModel, gw)
+			fmt.Fprintf(w, "poker_model_hands_played{model=\"%s\"} %d\n", escapedModel, hp)
+			fmt.Fprintf(w, "poker_model_hands_won{model=\"%s\"} %d\n", escapedModel, hw)
+			fmt.Fprintf(w, "poker_model_chips_won{model=\"%s\"} %d\n", escapedModel, tc)
+		}
+	}
+}
+
 func main() {
 	loadEnv()
 	initDB()
 	http.HandleFunc("/ws", handleConnections)
+	http.HandleFunc("/metrics", handleMetrics)
 	fmt.Println("🚀 Покерний турнірний сервер запущено на порту :8080...")
 	_ = http.ListenAndServe(":8080", nil)
 }
